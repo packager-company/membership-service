@@ -1,0 +1,26 @@
+# Usar una imagen base con Java y Maven instalados
+FROM maven:3.8.4-openjdk-11-slim AS build
+
+# Establecer el directorio de trabajo dentro del contenedor
+WORKDIR /app
+
+# Copiar el archivo pom.xml para descargar las dependencias
+COPY pom.xml .
+
+# Descargar las dependencias del proyecto
+RUN mvn dependency:go-offline
+
+# Copiar el resto del código fuente
+COPY src ./src
+
+# Compilar y empaquetar la aplicación
+RUN mvn package
+
+# Crear una nueva imagen para la aplicación compilada
+FROM adoptopenjdk/openjdk11:alpine-slim AS runtime
+
+# Copiar el archivo JAR generado durante la compilación
+COPY --from=build /app/target/your-app.jar /app/your-app.jar
+
+# Establecer el comando de inicio para ejecutar la aplicación
+CMD ["java", "-jar", "/app/your-app.jar"]
